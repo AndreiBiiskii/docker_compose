@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  web:
+    build: ./test_reg
+    command: gunicorn stocks_products.wsgi:application --bind 0.0.0.0:8000
+    env_file:
+      - ./test_reg/.env
+    volumes:
+      - ./app/static:/app/static
+
+    depends_on:
+      db:
+        condition: service_started
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: andrei
+      POSTGRES_DB: my_db
+    ports:
+      - "6060:5432"
+    volumes:
+      - pgdata:/var/lib/postgres/data
+  nginx:
+    build: ./nginx
+    depends_on:
+      - web
+    volumes:
+      - ./app/static:/app/static
+    ports:
+      - "8000:80"
+
+volumes:
+  pgdata:
